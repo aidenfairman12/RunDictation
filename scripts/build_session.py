@@ -34,6 +34,11 @@ from pydub import AudioSegment
 GERMAN_VOICES = ["de-DE-KatjaNeural", "de-DE-ConradNeural"]
 DEFAULT_ENGLISH_VOICE = "en-US-AriaNeural"
 
+VOICE_ALIASES = {
+    "katja":  "de-DE-KatjaNeural",
+    "conrad": "de-DE-ConradNeural",
+}
+
 
 # ---------- TTS with on-disk cache ----------
 
@@ -103,8 +108,18 @@ async def build_session(args):
     if args.limit:
         rows = rows[: args.limit]
 
-    # Voice picker: deterministic per-card alternation seeded by --voice-seed
+    # Voice picker: deterministic, seeded by --voice-seed
     voice_rng = random.Random(args.voice_seed)
+
+    # If session mode and no explicit --voice given, pick one voice for the whole session
+    if args.voice_mode == "session":
+        if args.voice:
+            session_voice_de = VOICE_ALIASES.get(args.voice.lower(), args.voice)
+        else:
+            session_voice_de = voice_rng.choice(GERMAN_VOICES)
+        print(f"Session voice (German): {session_voice_de}", file=sys.stderr)
+    else:
+        session_voice_de = None  # picked per card below
 
     cache_dir = Path(args.cache_dir)
 
@@ -122,10 +137,11 @@ async def build_session(args):
     sessions: list[AudioSegment] = []
     total = len(rows)
     for i, row in enumerate(rows, start=1):
-        # alternate (default) or random (with --voice-mode random)
-        if args.voice_mode == "alternate":
+        if args.voice_mode == "session":
+            voice_de = session_voice_de
+        elif args.voice_mode == "alternate":
             voice_de = GERMAN_VOICES[i % len(GERMAN_VOICES)]
-        else:
+        else:  # random
             voice_de = voice_rng.choice(GERMAN_VOICES)
 
         has_example = bool(row.get("de_example", "").strip()) and bool(row.get("en_example", "").strip())
@@ -175,10 +191,14 @@ def parse_args():
 
     # Voice
     p.add_argument("--voice-en", default=DEFAULT_ENGLISH_VOICE)
-    p.add_argument("--voice-mode", choices=["alternate", "random"], default="alternate",
-                   help="how to choose between Katja/Conrad (default: alternate per card)")
+    p.add_argument("--voice-mode", choices=["session", "alternate", "random"], default="session",
+                   help="session: one German voice for the whole MP3 (default). "
+                        "alternate: switch per card. random: pick per card.")
+    p.add_argument("--voice", default=None,
+                   help="pin German voice: 'katja', 'conrad', or a full voice ID. "
+                        "Implies --voice-mode session.")
     p.add_argument("--voice-seed", type=int, default=42,
-                   help="seed for random voice pick (only used with --voice-mode random)")
+                   help="seed for random voice pick (in session or random mode)")
 
     # Sentence-card gaps
     p.add_argument("--gap-de-en", type=float, default=2.0,
@@ -191,8 +211,9 @@ def parse_args():
     p.add_argument("--gap-ex-trans", type=float, default=2.0,
                    help="L1: pause after German example, before its English translation (default 2.0s)")
     # Shared
-    p.add_argument("--gap-between", type=float, default=1.5,
-                   help="pause between cards (default 1.5s)")
+    p.add_argument("--gap-between", type=float, default=2.5,
+                   help="pause between cards (default 2.5s) — wider than intra-card gaps "
+                        "so card boundaries are audible on a run")
     p.add_argument("--lead-in",     type=float, default=0.5,
                    help="silence at the very start of the session (default 0.5s)")
 

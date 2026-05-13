@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ## Quick smoke test
 
-Generate a 10-card test MP3 from the included `test_cards.csv`:
+Generate a test MP3 from the included `test_cards.csv`:
 
 ```bash
 source .venv/bin/activate     # if not already active
@@ -29,7 +29,16 @@ python scripts/build_session.py \
     --output output/L1/smoke_test.mp3
 ```
 
-Then AirDrop `output/L1/smoke_test.mp3` to your iPhone, open in VLC (or Files → share to Music), and listen.
+By default this picks one German voice (Katja or Conrad) for the whole MP3. To pin a specific one:
+
+```bash
+python scripts/build_session.py \
+    --input data/csvs/test_cards.csv \
+    --output output/L1/smoke_test_katja.mp3 \
+    --voice katja
+```
+
+Then AirDrop the MP3 to your iPhone, open in VLC, and listen.
 
 ## Daily use (once we've built fetch_sources.py + select_cards.py)
 
