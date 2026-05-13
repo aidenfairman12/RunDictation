@@ -1,0 +1,18 @@
+# raw downloaded data — large, regenerable
+data/sources/
+
+# generated audio
+output/
+cache/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# editor / OS
+.DS_Store
+.vscode/
+.idea/
