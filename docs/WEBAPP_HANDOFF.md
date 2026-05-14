@@ -14,13 +14,21 @@ This replaces the CLI workflow for ad-hoc inputs. The CLI tools (`build_session.
 
 ## Current status
 
-**v2 is deployed and working** (as of 2026-05-14).
+**v2.5 is deployed and working** (as of 2026-05-14).
 
 - Frontend: Next.js 14 on Vercel (`webapp/`)
 - Backend: FastAPI on Render free tier (`backend/`)
 - Auth: shared passphrase, HTTP-only cookie + hash-in-header for backend calls
 - TTS: `edge-tts` v7 (Python) on the Render backend — all jobs go through the backend
-- UI: light theme (white background), voice dropdown (Auto/Katja/Conrad), speed input (default 1.0x)
+- UI: light theme (white background), tabbed generate page
+- **Quick Generate** (v2.5): auto-generate bilingual MP3s from pre-processed datasets
+  - L1 word cards (4,178 words with translations from kaikki.org Wiktextract, 1,409 with example sentences)
+  - L2 sentence pairs (20,000 from Tatoeba, tagged by theme: daily life, food, travel, business)
+  - Frequency band selector (Top 100 / 101-500 / 501-2,000 / 2,001-5,000)
+  - Count or duration targeting (25/50/100/200 items, or 15min/30min/1hr)
+  - Daily Mix (date-seeded deterministic selection for fresh content each day)
+  - Themed packs for L2 (All / Daily Life / Food & Drink / Travel / Business)
+- **From Text** (v2): paste German text for single-voice TTS, voice dropdown (Auto/Katja/Conrad), speed input (default 1.0x)
 
 ---
 
@@ -144,12 +152,27 @@ webapp/
     └── app/
         ├── layout.tsx, globals.css
         ├── page.tsx (login)
-        ├── generate/page.tsx (main form)
+        ├── generate/
+        │   ├── page.tsx (tabbed layout: Quick Generate + From Text)
+        │   ├── QuickTab.tsx (L1/L2 auto-generate UI)
+        │   ├── TextTab.tsx (paste German text UI)
+        │   └── shared.tsx (voice/speed controls, job hooks, stats hook)
         └── api/auth/route.ts (login + logout)
 
 backend/
-├── main.py (FastAPI app — jobs, files, health, auth)
-└── requirements.txt
+├── main.py (FastAPI app — jobs, quick-generate, stats, health, auth)
+├── audio_builder.py (bilingual TTS: word/sentence card audio with gaps)
+├── requirements.txt
+└── data/
+    ├── words.jsonl.gz (pre-processed L1 word data, ~195KB)
+    ├── sentences.jsonl.gz (pre-processed L2 sentence pairs, ~760KB)
+    └── stats.json (dataset counts for frontend display)
+
+scripts/
+├── build_session.py (CLI: CSV → bilingual MP3)
+├── fetch_sources.py (download raw source data)
+├── select_cards.py (CLI card selection — stub)
+└── preprocess_data.py (raw sources → compact backend datasets)
 ```
 
 ---

@@ -18,9 +18,11 @@ See [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) at the repo root for full architectur
 - `scripts/build_session.py` — CSV → bilingual MP3 generator. Works end-to-end with `edge-tts` (free, no API key) and `pydub`. **Reuse this** rather than rewriting the TTS/concat logic.
 - `data/csvs/test_cards.csv` — 11 hand-crafted test cards (used for smoke-testing).
 
-### Web app (deployed, v2)
-- `webapp/` — Next.js 14 frontend on Vercel. Login page + generate page. Light theme, Tailwind v4, `lucide-react` icons.
-- `backend/` — FastAPI backend on Render free tier. Async TTS job queue via `edge-tts` v7 (Python). Endpoints: `/jobs` (submit), `/jobs/:id` (poll), `/files/:id` (download), `/health` (wake-up).
+### Web app (deployed, v2.5)
+- `webapp/` — Next.js 14 frontend on Vercel. Login page + tabbed generate page (Quick Generate + From Text). Light theme, Tailwind v4, `lucide-react` icons.
+- `backend/` — FastAPI backend on Render free tier. Async TTS job queue via `edge-tts` v7 + `pydub` (Python). Endpoints: `/jobs` (text TTS), `/jobs/quick` (bilingual card generation), `/jobs/:id` (poll), `/files/:id` (download), `/stats` (dataset info), `/health` (wake-up).
+- **Quick Generate**: pre-processed datasets (4,178 words from kaikki.org, 20,000 Tatoeba sentences) ship with the backend as gzipped JSONL (~960KB). Supports L1 word cards, L2 sentence pairs, frequency bands, themed packs, daily mix.
+- `scripts/preprocess_data.py` — regenerate backend datasets from raw sources in `data/sources/`.
 - Auth: shared passphrase, HTTP-only cookie for page protection, SHA-256 hash in Authorization header for backend calls.
 - See [`docs/WEBAPP_HANDOFF.md`](./docs/WEBAPP_HANDOFF.md) for full architecture, auth flow, and env vars.
 
