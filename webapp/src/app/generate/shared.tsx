@@ -23,6 +23,7 @@ export type Stats = {
     total: number
     with_examples: number
     by_band: Record<string, number>
+    by_cutoff?: Record<string, number>
   }
   sentences: {
     total: number

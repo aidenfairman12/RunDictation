@@ -36,11 +36,13 @@ jobs: dict[str, dict] = {}
 
 DATA_DIR = Path(__file__).parent / "data"
 
-WORDS: list[dict] = []
+WORDS: list[dict] = []  # sorted by freq_rank
 SENTENCES: list[dict] = []
-WORDS_BY_BAND: dict[str, list[dict]] = defaultdict(list)
 SENTENCES_BY_THEME: dict[str, list[dict]] = defaultdict(list)
 STATS: dict = {}
+
+# Cumulative frequency cutoffs for L1 word selection
+FREQ_CUTOFFS = [100, 500, 2000, 5000]
 
 
 def load_data():
@@ -54,8 +56,7 @@ def load_data():
     if words_path.exists():
         with gzip.open(words_path, "rt", encoding="utf-8") as f:
             WORDS.extend(json.loads(line) for line in f)
-        for w in WORDS:
-            WORDS_BY_BAND[w["freq_band"]].append(w)
+        WORDS.sort(key=lambda w: w["freq_rank"])
         print(f"Loaded {len(WORDS)} words")
 
     if sentences_path.exists():
@@ -71,6 +72,11 @@ def load_data():
     if stats_path.exists():
         with stats_path.open(encoding="utf-8") as f:
             STATS.update(json.load(f))
+        # Build cumulative word counts for each cutoff
+        cumulative = {}
+        for cutoff in FREQ_CUTOFFS:
+            cumulative[str(cutoff)] = sum(1 for w in WORDS if w["freq_rank"] <= cutoff)
+        STATS["words"]["by_cutoff"] = cumulative
         print(f"Loaded stats")
 
 
@@ -115,7 +121,7 @@ class QuickGenerateRequest(BaseModel):
     speed: float = 1.0
     count: Optional[int] = None
     duration: Optional[int] = None  # target duration in minutes
-    freq_band: str = "top100"
+    freq_cutoff: int = 100  # cumulative: top N words (100, 500, 2000, 5000)
     theme: str = "all"
     seed: Optional[str] = None  # e.g. "2026-05-14" for daily mix
 
@@ -131,7 +137,8 @@ def select_cards(req: QuickGenerateRequest) -> list[dict]:
     rng = random.Random(req.seed) if req.seed else random.Random()
 
     if req.type == "l1":
-        pool = list(WORDS_BY_BAND.get(req.freq_band, []))
+        # Cumulative: all words up to freq_cutoff rank
+        pool = [w for w in WORDS if w["freq_rank"] <= req.freq_cutoff]
         secs_per_card = SECONDS_PER_L1_CARD
     else:
         pool = list(SENTENCES_BY_THEME.get(req.theme, SENTENCES_BY_THEME.get("all", [])))

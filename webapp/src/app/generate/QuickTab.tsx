@@ -9,11 +9,11 @@ import {
   useStats,
 } from './shared'
 
-const FREQ_BANDS = [
-  { value: 'top100', label: 'Top 100' },
-  { value: '101-500', label: '101–500' },
-  { value: '501-2000', label: '501–2,000' },
-  { value: '2001-5000', label: '2,001–5,000' },
+const FREQ_CUTOFFS = [
+  { value: 100, label: 'Top 100' },
+  { value: 500, label: 'Top 500' },
+  { value: 2000, label: 'Top 2,000' },
+  { value: 5000, label: 'Top 5,000' },
 ]
 
 const THEMES = [
@@ -33,7 +33,7 @@ const DURATION_OPTIONS = [
 
 export default function QuickTab() {
   const [mode, setMode] = useState<'l1' | 'l2'>('l1')
-  const [freqBand, setFreqBand] = useState('top100')
+  const [freqCutoff, setFreqCutoff] = useState(100)
   const [inputType, setInputType] = useState<'count' | 'duration'>('count')
   const [count, setCount] = useState(50)
   const [duration, setDuration] = useState(30)
@@ -44,8 +44,8 @@ export default function QuickTab() {
   const stats = useStats()
   const { job, busy, downloading, submitJob, handleDownload } = useJobRunner()
 
-  function getAvailableCount(band: string): number | null {
-    return stats?.words.by_band[band] ?? null
+  function getAvailableCount(cutoff: number): number | null {
+    return stats?.words.by_cutoff?.[String(cutoff)] ?? null
   }
 
   function getThemeCount(t: string): number | null {
@@ -77,7 +77,7 @@ export default function QuickTab() {
       voice,
       speed: parseFloat(speed),
       ...(inputType === 'count' ? { count } : { duration }),
-      freq_band: freqBand,
+      freq_cutoff: freqCutoff,
       theme,
       seed,
     })
@@ -120,18 +120,18 @@ export default function QuickTab() {
       {mode === 'l1' ? (
         <div>
           <label className="mb-1.5 block text-xs font-medium text-slate-500">
-            Frequency Band
+            Difficulty
           </label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {FREQ_BANDS.map(band => {
+            {FREQ_CUTOFFS.map(band => {
               const available = getAvailableCount(band.value)
               return (
                 <button
                   key={band.value}
-                  onClick={() => setFreqBand(band.value)}
+                  onClick={() => setFreqCutoff(band.value)}
                   disabled={busy}
                   className={`rounded-lg border px-3 py-2.5 text-left transition-all ${
-                    freqBand === band.value
+                    freqCutoff === band.value
                       ? 'border-slate-900 bg-slate-900 text-white'
                       : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
                   }`}
@@ -140,7 +140,7 @@ export default function QuickTab() {
                   {available !== null && (
                     <div
                       className={`text-xs ${
-                        freqBand === band.value ? 'text-slate-300' : 'text-slate-400'
+                        freqCutoff === band.value ? 'text-slate-300' : 'text-slate-400'
                       }`}
                     >
                       {available.toLocaleString()} words
