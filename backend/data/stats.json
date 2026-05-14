@@ -1,0 +1,26 @@
+{
+  "words": {
+    "total": 4178,
+    "with_examples": 1409,
+    "by_band": {
+      "top100": 98,
+      "101-500": 356,
+      "501-2000": 1288,
+      "2001-5000": 2436
+    }
+  },
+  "sentences": {
+    "total": 20000,
+    "by_theme": {
+      "general": 15380,
+      "daily_life": 2746,
+      "travel": 660,
+      "business": 580,
+      "food": 810
+    }
+  },
+  "timing_estimates": {
+    "seconds_per_l1_card": 27.5,
+    "seconds_per_l2_card": 17.5
+  }
+}
