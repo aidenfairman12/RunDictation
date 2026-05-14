@@ -14,8 +14,17 @@ See [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) at the repo root for full architectur
 
 ## What's already built
 
+### CLI tools
 - `scripts/build_session.py` — CSV → bilingual MP3 generator. Works end-to-end with `edge-tts` (free, no API key) and `pydub`. **Reuse this** rather than rewriting the TTS/concat logic.
 - `data/csvs/test_cards.csv` — 11 hand-crafted test cards (used for smoke-testing).
+
+### Web app (deployed, v2)
+- `webapp/` — Next.js 14 frontend on Vercel. Login page + generate page. Light theme, Tailwind v4, `lucide-react` icons.
+- `backend/` — FastAPI backend on Render free tier. Async TTS job queue via `edge-tts` v7 (Python). Endpoints: `/jobs` (submit), `/jobs/:id` (poll), `/files/:id` (download), `/health` (wake-up).
+- Auth: shared passphrase, HTTP-only cookie for page protection, SHA-256 hash in Authorization header for backend calls.
+- See [`docs/WEBAPP_HANDOFF.md`](./docs/WEBAPP_HANDOFF.md) for full architecture, auth flow, and env vars.
+
+### Docs
 - `PROJECT_PLAN.md` — architecture decisions and the locked defaults below.
 - `requirements.txt`, `README.md`, `.gitignore`.
 
@@ -37,7 +46,7 @@ See [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) at the repo root for full architectur
 
 - Python 3.10+, `asyncio` for `edge-tts` calls.
 - Keep CLI tools self-contained scripts in `scripts/`. They should run via `python scripts/<name>.py --help`.
-- Web app code lives in `webapp/` (Next.js). Optional backend in `backend/` (Python/FastAPI).
+- Web app code lives in `webapp/` (Next.js 14). Backend lives in `backend/` (Python/FastAPI). Both deployed.
 - Shared TTS logic: extract from `build_session.py` into `lib/tts.py` when you need to reuse it in the web app. Don't duplicate.
 - Generated audio goes to `output/`; raw data downloads to `data/sources/`; both are gitignored.
 - The user runs on macOS with `ffmpeg` (brew), `python3`, and `git` already installed.
