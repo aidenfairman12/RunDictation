@@ -133,17 +133,17 @@ export default function GeneratePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-700/50 bg-[#0f172a]/90 backdrop-blur-sm">
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/25 bg-sky-500/15">
-              <Mic className="h-4 w-4 text-sky-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+              <Mic className="h-4 w-4 text-slate-600" />
             </div>
-            <span className="text-sm font-bold tracking-tight text-white">RunDictation</span>
+            <span className="text-sm font-bold tracking-tight text-slate-900">RunDictation</span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-700/60 hover:text-white"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
           >
             <LogOut className="h-3.5 w-3.5" /> Logout
           </button>
@@ -151,27 +151,27 @@ export default function GeneratePage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <div className="rounded-2xl border border-slate-700/60 bg-slate-800/50 p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="Paste German text here..."
             disabled={busy}
             rows={10}
-            className="w-full resize-y rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm leading-relaxed text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none disabled:opacity-50"
+            className="w-full resize-y rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm leading-relaxed text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none disabled:opacity-50"
           />
-          <p className="mt-1 text-right text-xs text-slate-500">
+          <p className="mt-1 text-right text-xs text-slate-400">
             {text.length.toLocaleString()} characters
           </p>
 
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div className="min-w-[160px] flex-1">
-              <label className="mb-1 block text-xs font-medium text-slate-400">Voice</label>
+              <label className="mb-1 block text-xs font-medium text-slate-500">Voice</label>
               <select
                 value={voice}
                 onChange={e => setVoice(e.target.value)}
                 disabled={busy}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5 text-sm text-white focus:border-sky-500 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-500 focus:outline-none disabled:opacity-50"
               >
                 {VOICES.map(v => (
                   <option key={v.value} value={v.value}>{v.label}</option>
@@ -180,7 +180,7 @@ export default function GeneratePage() {
             </div>
 
             <div className="w-24">
-              <label className="mb-1 block text-xs font-medium text-slate-400">Speed</label>
+              <label className="mb-1 block text-xs font-medium text-slate-500">Speed</label>
               <input
                 type="number"
                 value={speed}
@@ -189,14 +189,14 @@ export default function GeneratePage() {
                 min="0.5"
                 max="2.0"
                 step="0.05"
-                className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2.5 text-sm text-white focus:border-sky-500 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-slate-500 focus:outline-none disabled:opacity-50"
               />
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={busy || !text.trim()}
-              className="rounded-lg bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-400 disabled:opacity-50"
+              className="rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
             >
               {busy ? (
                 <span className="flex items-center gap-2">
@@ -210,23 +210,23 @@ export default function GeneratePage() {
           </div>
 
           {job.phase === 'done' && (
-            <div className="mt-6 flex items-center gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <div className="mt-6 flex items-center gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
               <button
                 onClick={handleDownload}
                 disabled={downloading}
-                className="flex items-center gap-2 rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
               >
                 <Download className="h-4 w-4" />
                 {downloading ? 'Downloading...' : 'Download MP3'}
               </button>
-              <p className="text-xs text-emerald-300/70">Ready to download</p>
+              <p className="text-xs text-emerald-600">Ready to download</p>
             </div>
           )}
 
           {job.phase === 'error' && (
-            <div className="mt-6 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-              <p className="text-sm text-red-300">{job.message}</p>
+            <div className="mt-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+              <p className="text-sm text-red-600">{job.message}</p>
             </div>
           )}
         </div>

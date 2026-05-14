@@ -33,12 +33,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-slate-700/60 bg-slate-800/50 p-8">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-500/25 bg-sky-500/15">
-            <KeyRound className="h-5 w-5 text-sky-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+            <KeyRound className="h-5 w-5 text-slate-600" />
           </div>
-          <h1 className="text-xl font-bold text-white">RunDictation</h1>
+          <h1 className="text-xl font-bold text-slate-900">RunDictation</h1>
         </div>
 
         <input
@@ -46,16 +46,16 @@ export default function LoginPage() {
           value={passphrase}
           onChange={e => setPassphrase(e.target.value)}
           placeholder="Passphrase"
-          className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+          className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
           autoFocus
         />
 
-        {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+        {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
 
         <button
           type="submit"
           disabled={loading || !passphrase}
-          className="mt-4 w-full rounded-lg bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-400 disabled:opacity-50"
+          className="mt-4 w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
         >
           {loading ? 'Checking...' : 'Enter'}
         </button>
