@@ -24,7 +24,7 @@ This replaces the CLI workflow for ad-hoc inputs. The CLI tools (`build_session.
 - **Quick Generate** (v2.5): auto-generate bilingual MP3s from pre-processed datasets
   - L1 word cards (4,178 words with translations from kaikki.org Wiktextract, 1,409 with example sentences)
   - L2 sentence pairs (20,000 from Tatoeba, tagged by theme: daily life, food, travel, business)
-  - Frequency band selector (Top 100 / 101-500 / 501-2,000 / 2,001-5,000)
+  - Cumulative difficulty selector (Top 100 / Top 500 / Top 2,000 / Top 5,000 — each includes all easier words)
   - Count or duration targeting (25/50/100/200 items, or 15min/30min/1hr)
   - Daily Mix (date-seeded deterministic selection for fresh content each day)
   - Themed packs for L2 (All / Daily Life / Food & Drink / Travel / Business)
@@ -47,22 +47,33 @@ These were confirmed at the start of the build session:
 
 ## User flows
 
-**Flow A — paste German text (implemented):**
+**Flow A — Quick Generate (implemented, v2.5):**
 1. User opens the app, enters passphrase (or is already logged in via cookie).
+2. On the "Quick Generate" tab, picks a mode: Words (L1) or Sentences (L2).
+3. For L1: selects difficulty level (Top 100 / 500 / 2,000 / 5,000 most common words).
+   For L2: selects a topic (All / Daily Life / Food & Drink / Travel / Business).
+4. Chooses amount by count (25/50/100/200) or duration (15min/30min/1hr).
+5. Optionally clicks "Daily Mix" for a date-seeded selection (same day = same words, fresh each day).
+6. Picks voice and speed, clicks "Generate."
+7. Backend selects cards from pre-processed datasets, builds bilingual audio (German → pause → English for each card), returns MP3.
+8. Downloads the MP3.
+
+**Flow B — paste German text (implemented, v2):**
+1. User switches to the "From Text" tab.
 2. Pastes a chunk of German text (an article, a chapter, anything).
 3. Picks a voice (Auto / Katja / Conrad), optionally adjusts speed (1.0x default).
 4. Clicks "Generate."
 5. Sees loading state while backend processes. Backend wakes on page load to reduce cold-start delay.
 6. Downloads the resulting MP3.
 
-**Flow B — YouTube URL (not yet built, v3):**
+**Flow C — YouTube URL (not yet built, v3):**
 1. Same login.
 2. Pastes a YouTube URL.
 3. Optionally picks a target duration and a speed (0.85x is great for German podcasts).
 4. Clicks "Capture."
 5. App downloads audio via `yt-dlp`, optionally adjusts speed, returns the MP3.
 
-**Flow C (later, optional) — paste English/foreign text, get bilingual audio:**
+**Flow D (later, optional) — paste English/foreign text, get bilingual audio:**
 1. User pastes text in the *target* language.
 2. App translates each sentence and produces the `[de] · pause · [en] · pause` audio the CLI does today.
 3. Downloads the resulting MP3.
@@ -90,17 +101,22 @@ These were confirmed at the start of the build session:
          │  all TTS jobs
          │  (submit + poll + download)
          ▼
-┌─────────────────────────┐
-│ Render: FastAPI backend  │
-│ - POST /jobs (submit)   │
-│ - GET /jobs/:id (poll)  │
-│ - GET /files/:id (MP3)  │
-│ - GET /health (wake-up) │
-│ - edge-tts v7 (Python)  │
-│ - async job processing  │
-│ - MP3s in /tmp (cleaned │
-│   after 1 hour)         │
-└─────────────────────────┘
+┌──────────────────────────┐
+│ Render: FastAPI backend   │
+│ - POST /jobs (text TTS)  │
+│ - POST /jobs/quick       │
+│   (bilingual card gen)   │
+│ - GET /jobs/:id (poll)   │
+│ - GET /files/:id (MP3)   │
+│ - GET /stats (dataset)   │
+│ - GET /health (wake-up)  │
+│ - edge-tts v7 + pydub    │
+│ - pre-processed data:    │
+│   4,178 words, 20k sents │
+│ - async job processing   │
+│ - MP3s in /tmp (cleaned  │
+│   after 1 hour)          │
+└──────────────────────────┘
 ```
 
 **Why all jobs go through the backend** (not dual-path): Vercel Hobby tier has a 10s function timeout. Even short TTS jobs can exceed this. Routing everything through Render avoids timeout issues entirely. The tradeoff is a ~30s cold start if the Render service has spun down, mitigated by pinging `/health` when the generate page loads.
@@ -122,7 +138,7 @@ These were confirmed at the start of the build session:
 ## Tech stack
 
 - **Frontend**: Next.js 14 (App Router), Tailwind CSS v4, `lucide-react` icons, `@vercel/analytics`
-- **Backend**: FastAPI, `edge-tts` v7, `uvicorn`
+- **Backend**: FastAPI, `edge-tts` v7, `pydub`, `audioop-lts`, `uvicorn`
 - **Hosting**: Vercel (frontend), Render free tier (backend)
 - **Auth**: shared passphrase, SHA-256 hash, HTTP-only cookie + header token
 
@@ -202,7 +218,9 @@ Deliverables:
 
 ## Code that can be reused
 
-- **`scripts/build_session.py`** has all the TTS + gap + concat logic. For bilingual mode (v4), **extract it into a Python module (`lib/tts.py`)**. Don't rewrite the gap math — copy it.
+- **`backend/audio_builder.py`** — bilingual TTS card builder, already extracted from `build_session.py`. Used by Quick Generate. Contains `tts_segment()`, `build_word_card()`, `build_sentence_card()`, and `build_session_audio()`.
+- **`scripts/build_session.py`** — original CLI version with full CLI arg parsing, ffmpeg speed adjustment, and CSV loading. Still the right tool for batch generation from CSV files.
+- **`scripts/preprocess_data.py`** — regenerate `backend/data/` from raw sources. Run after updating source data.
 - **`PROJECT_PLAN.md`** is the source of truth for defaults (voice IDs, gap timings, card structure).
 - **`memory/feedback_voice_consistency.md`** (if present): one voice per session, do not switch mid-session.
 

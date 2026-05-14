@@ -4,7 +4,18 @@ Generate bilingual German→English MP3s for language-learning on runs. Play on 
 
 See [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) for the full architecture.
 
-## Setup (one time, on your Mac)
+## Web app
+
+The easiest way to use RunDictation is the deployed web app:
+
+1. Open the Vercel app URL and log in with the passphrase.
+2. **Quick Generate** — pick a difficulty level (Top 100/500/2,000/5,000 most common words) or a topic (Daily Life, Food, Travel, Business), set a count or target duration, and hit Generate. You get a bilingual MP3 with German prompts, pauses, and English translations.
+3. **From Text** — paste any German text and get a single-voice TTS MP3.
+4. AirDrop the downloaded MP3 to your iPhone, open in VLC, and listen on your run.
+
+The web app is a Next.js 14 frontend on Vercel + a FastAPI backend on Render. See [`docs/WEBAPP_HANDOFF.md`](./docs/WEBAPP_HANDOFF.md) for architecture details.
+
+## CLI setup (one time, on your Mac)
 
 ```bash
 cd ~/Documents/Claude/Projects/RunDictation
@@ -18,7 +29,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Quick smoke test
+## CLI smoke test
 
 Generate a test MP3 from the included `test_cards.csv`:
 
